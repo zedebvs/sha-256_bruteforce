@@ -228,3 +228,4 @@ class parameters:
     def delete_symbols(self):
         pass
 
+param = parameters()

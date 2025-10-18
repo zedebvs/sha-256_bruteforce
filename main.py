@@ -1,8 +1,8 @@
-from config import parameters
+from config import param
 from utils import clear
+from single_thread import brute_single_thread
 
-param = parameters()
-
+brut = brute_single_thread(config=param)
 
 def main():
     #print(param.display())
@@ -17,7 +17,7 @@ def main():
         elif choice == '2':
             pass
         elif choice == '3':
-            pass
+            brut.bruteforce()
         elif choice == '4':
             pass
         elif choice == '5':

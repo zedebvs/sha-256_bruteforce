@@ -1,6 +1,8 @@
 import json
 import os
 from pathlib import Path
+from hashlib import sha256
+
 
 def load_data(file_path):
     if not os.path.exists(file_path):
@@ -42,6 +44,12 @@ def iface_hashes(hashes):
         str_ +=f'{i}, '
     return str_[:-2]
 
+def log_hash(hashes):
+    f_ = '\n'
+    for i in hashes:
+        f_ += f'{i}\n'
+    return f_
+
 def clear():
     os.system('cls || clear')
     
@@ -68,3 +76,7 @@ def elements(arr):
             return None
     print(f'Символы загружены в пул: {symbols}')
     return {"start": ord(min(arr)), "end": ord(max(arr))+1}
+
+
+def hash_(string):
+    return sha256(string.encode('utf-8')).hexdigest()
