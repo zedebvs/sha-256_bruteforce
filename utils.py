@@ -59,3 +59,12 @@ def validate_txt_filename(filename):
         return False
     
     return True
+
+def elements(arr):
+    symbols = [chr(i) for i in range (ord(min(arr)), ord(max(arr))+1)]
+    if len(symbols) > 200:
+        choice = str(input("Вы уверены, что хотите загрузить столько символов в пул? y/n")).lower().strip()
+        if choice != 'y':
+            return None
+    print(f'Символы загружены в пул: {symbols}')
+    return {"start": ord(min(arr)), "end": ord(max(arr))+1}

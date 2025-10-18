@@ -1,7 +1,7 @@
 import json
 import os
-from utils import load_data, save_data, iface_hashes, interface_ssumbols, clear, validate_txt_filename
-from hardcode import MENU
+from utils import load_data, save_data, iface_hashes, interface_ssumbols, clear, validate_txt_filename, elements
+from hardcode import *
 import time
 
 class parameters:
@@ -19,47 +19,41 @@ class parameters:
         clear()
         print(self.display())
         
-    
+    def _get_default_config(self):
+        return {
+            "cores": os.cpu_count(),
+            "password_length": 5,
+            "output": "output.txt",
+            "symbols": [{"start": 97, "end": 123}],
+            "targets": [
+                "1115dd800feaacefdf481f1f9070374a2a81e27880f187396db67958b207cbad",
+                "3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b",
+                "74e1bb62f8dabb8125a58852b63bdf6eaef667cb56ac7f7cdba6d7305c50a22f"
+            ]
+        }
+        
     def load_parameters(self, FILENAME, reset = False):
         script_dir = os.path.dirname(__file__)
         filepath = os.path.join(script_dir, FILENAME)
 
         data = load_data(filepath)
         
-        if not data or reset == True:
-            print("[-] Файл с конфигурацией не найден или пустой")
-            self.targets = ['1115dd800feaacefdf481f1f9070374a2a81e27880f187396db67958b207cbad', 
-                            '3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b',
-                            '74e1bb62f8dabb8125a58852b63bdf6eaef667cb56ac7f7cdba6d7305c50a22f']
-            self.symbols = [{"start": 97,
-                             "end": 123 }]
-            self.cores = os.cpu_count()
-            self.output = 'output.txt'
-            self.password_length = 5
-            self.data = {"cores":self.cores, "password_length":self.password_length, "output":self.output, "symbols":self.symbols,"targets":self.targets}
-            save_data(FILENAME, self.data)
-        else:
-            
-            cores_from_data = data.get('cores')
-            self.cores = cores_from_data if cores_from_data is not None else os.cpu_count()
-            
-            password_length_from_data = data.get('password_length')
-            self.password_length = password_length_from_data if password_length_from_data is not None else 5
-            
-            output_from_data = data.get('output')
-            self.output = output_from_data if output_from_data is not None else 'output.txt'
-            
-            symbols_from_data = data.get('symbols')
-            self.symbols = symbols_from_data if symbols_from_data else [{"start": 97, "end": 123}]
-            
-            targets_from_data = data.get('targets')
-            self.targets = targets_from_data if targets_from_data else [
-                '1115dd800feaacefdf481f1f9070374a2a81e27880f187396db67958b207cbad', 
-                '3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b',
-                '74e1bb62f8dabb8125a58852b63bdf6eaef667cb56ac7f7cdba6d7305c50a22f'
-            ]
-            self.data = {"cores": self.cores, "password_length": self.password_length, "output": self.output, "symbols": self.symbols, "targets": self.targets}
-            save_data(FILENAME, self.data)
+        if reset:
+            print("[-] Сброс конфигурации к стандартным значениям.")
+            data = None
+
+        if not data:
+            data = self._get_default_config()
+
+        defaults = self._get_default_config()
+        self.cores = data.get('cores', defaults['cores'])
+        self.password_length = data.get('password_length', defaults['password_length'])
+        self.output = data.get('output', defaults['output'])
+        self.symbols = data.get('symbols', defaults['symbols'])
+        self.targets = data.get('targets', defaults['targets'])
+
+        self.data = {"cores": self.cores, "password_length": self.password_length, "output": self.output, "symbols": self.symbols, "targets": self.targets}
+        save_data(FILENAME, self.data)
             
     def display(self):
         return f'{"-"*50}\nПараметры: \nКоличество процессов: {self.cores}\nДлина целевой строки: {self.password_length}\nФайл вывода: {self.output}\nПул символов: {interface_ssumbols(self.symbols)}\nТаргеты: {iface_hashes(self.targets)}\n{"-"*50}'
@@ -85,13 +79,17 @@ class parameters:
             elif choice == '5':
                 self.change_targets()
             elif choice == 'add symbol':
-                pass
+                self.change_symbols(pool = True)
             elif choice == 'remove symbol':
-                pass
+                self.delete_( self.symbols)
+                self.data["symbols"] = self.symbols
+                save_data(self.FILENAME, self.data)
             elif choice == 'add target':
-                pass
+                self.change_targets(pool = True)
             elif choice == 'remove target':
-                pass
+                self.delete_( self.targets)
+                self.data["targets"] = self.targets
+                save_data(self.FILENAME, self.data)
             elif choice == 'exit':
                 return
             
@@ -140,15 +138,38 @@ class parameters:
                 continue
         
 
-    def change_symbols(self):
-        symbols = []
+    def change_symbols(self, pool = False):
+        if pool:
+            symbols = self.symbols
+            text = ADD_POLL
+        else:
+            symbols = []
+            text = ADD_FULL_POOL
         while True:
             self.zzz()
             try:
-                print("[Изменение всех символов для перебора]\nВведите символы или нажмите любую клавишу для выхода.\n1 число начало границы\n2 число конец границы\n")
-                left = int(input("Начало границы: "))
-                right = int(input("Конец границы: "))
-                symbols.append({"start": left, "end": right})
+                print(f"{text}\nВведите exit для сохранения или выхода\nВведите начальный символ, а потом конечный. В пул будет загружен весь диапазон!\n")
+                left = str(input("Начальный символ: "))
+                if left == 'exit':
+                    break
+                left = left[0]
+                right = str(input("Конечный символ: "))
+                if right == 'exit':
+                    break
+                right = right[0]
+                
+                symbols_ = elements([left, right])
+                if not symbols_:
+                    continue
+                if symbols_ in symbols:
+                    clear()
+                    print("Данные символы уже загружены в пул!")
+                    time.sleep(1)
+                    continue
+                 
+                symbols.append(symbols_)
+                
+                time.sleep(2)
                 self.symbols = symbols
                 continue
             except ValueError:
@@ -157,10 +178,16 @@ class parameters:
         self.data["symbols"] = symbols
         save_data(self.FILENAME, self.data)
     
-    def change_targets(self):
-        hashes = []
+    def change_targets(self, pool = False):
+        if pool:
+            hashes = self.targets
+            text = ADD_POLL_HASH
+        else:
+            hashes = []
+            text = ADD_FULL_POOL_HASH
         while True:
             self.zzz()
+            print(text)
             hash_ = str(input("Для выхода нажмите - exit\nВведите sha-256 хэш в hex формате: "))
             if hash_ == 'exit':
                 break
@@ -176,4 +203,28 @@ class parameters:
             self.targets = hashes
         self.data["targets"] = hashes
         save_data(self.FILENAME, self.data)
+    
+    def delete_(self, for_delete):
+        while True:
+            self.zzz()
+            print(DELETE_HASH)
+            
+            choice = input(DELETE)
+            if choice == 'exit':
+                break
+            try:
+                choice = int(choice)
+                if choice < 0 or choice >= len(self.targets):
+                    print("Вы ошиблись при выборе элемента для удаления!")
+                    time.sleep(1)
+                    continue
+                del for_delete[choice-1]
+            except ValueError:
+                clear()
+                print("Введите число!")
+                time.sleep(1)
+                continue
+    
+    def delete_symbols(self):
+        pass
 
