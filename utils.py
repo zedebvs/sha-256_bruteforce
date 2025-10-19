@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-from hashlib import sha256
+from hashlib import sha256, sha1, md5
 
 
 def load_data(file_path):
@@ -27,7 +27,7 @@ def save_data(file_path, data):
 def parse_char_pool(symbol_ranges):
     chars = []
     for r in symbol_ranges:
-        chars.extend([chr(i) for i in range(r['start'], r['end'])])
+        chars.extend([chr(i) for i in range(r['start'], r['end']) if chr(i) not in chars])
     return chars
 
 def interface_ssumbols(symbol_ranges):

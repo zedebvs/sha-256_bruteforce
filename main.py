@@ -1,8 +1,12 @@
 from config import param
 from utils import clear
 from single_thread import brute_single_thread
+from multithreading import brute_multi_thread
+
 
 brut = brute_single_thread(config=param)
+brut_2 = brute_multi_thread(config=param)
+
 
 def main():
     #print(param.display())
@@ -19,7 +23,8 @@ def main():
         elif choice == '3':
             brut.bruteforce()
         elif choice == '4':
-            pass
+            brut_2.bruteforce()
+            input()
         elif choice == '5':
             pass
         else:

@@ -12,6 +12,7 @@ class parameters:
         self.output = None
         self.symbols = None
         self.targets = None
+        self.chunk_size = None
         self.data = None
         self.load_parameters(self.FILENAME)
 
@@ -24,6 +25,7 @@ class parameters:
             "cores": os.cpu_count(),
             "password_length": 5,
             "output": "output.txt",
+            "chunk_size": 1000,
             "symbols": [{"start": 97, "end": 123}],
             "targets": [
                 "1115dd800feaacefdf481f1f9070374a2a81e27880f187396db67958b207cbad",
@@ -49,14 +51,15 @@ class parameters:
         self.cores = data.get('cores', defaults['cores'])
         self.password_length = data.get('password_length', defaults['password_length'])
         self.output = data.get('output', defaults['output'])
+        self.chunk_size = data.get('chunk_size', defaults['chunk_size'])
         self.symbols = data.get('symbols', defaults['symbols'])
         self.targets = data.get('targets', defaults['targets'])
 
-        self.data = {"cores": self.cores, "password_length": self.password_length, "output": self.output, "symbols": self.symbols, "targets": self.targets}
+        self.data = {"cores": self.cores, "password_length": self.password_length, "output": self.output, "chunk_size": self.chunk_size, "symbols": self.symbols, "targets": self.targets}
         save_data(FILENAME, self.data)
             
     def display(self):
-        return f'{"-"*50}\nПараметры: \nКоличество процессов: {self.cores}\nДлина целевой строки: {self.password_length}\nФайл вывода: {self.output}\nПул символов: {interface_ssumbols(self.symbols)}\nТаргеты: {iface_hashes(self.targets)}\n{"-"*50}'
+        return f'{"-"*50}\nПараметры: \nКоличество процессов: {self.cores}\nДлина целевой строки: {self.password_length}\nФайл вывода: {self.output}\nРазмер чанка: {self.chunk_size}\nПул символов: {interface_ssumbols(self.symbols)}\nТаргеты: {iface_hashes(self.targets)}\n{"-"*50}'
     
     def change_if(self):
         while True:

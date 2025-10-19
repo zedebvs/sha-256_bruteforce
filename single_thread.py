@@ -40,9 +40,13 @@ class brute_single_thread:
         clear()
         end_time = datetime.datetime.now()
         if not targets_to_find:
-            line_(f"Атака закончилась успешно, все хэши найдены\nВремя выполнения: {end_time - start} секунд")
+            log = f"Атака закончилась успешно, все хэши найдены\nВремя выполнения: {end_time - start} секунд"
+            log_entries.append(log)
+            line_(log)
         else:
-            line_(f"|Атака закончилась, не все хэши найдены|\nВремя выполнения: {end_time - start} секунд\nОставшиеся хэши: {targets_to_find}")
+            log = f"Атака закончилась, не все хэши найдены\nВремя выполнения: {end_time - start} секунд\nОставшиеся хэши: {log_hash(targets_to_find)}"
+            log_entries.append(log)
+            line_(log)
 
         log_entries.append(f"Конец атаки: {end_time}\n\n\n\n\n")
         self.save_result("\n".join(log_entries))
