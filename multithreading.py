@@ -1,4 +1,4 @@
-from config import param, parameters
+from config import param
 from utils import parse_char_pool, hash_, clear, log_hash
 from itertools import islice, product
 from hardcode import line_, print_, settings
@@ -6,9 +6,9 @@ import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class brute_multi_thread:
-    def __init__(self, config: parameters):
-        self.config = config
-        self.symbols_pool = "".join(parse_char_pool(self.config.symbols))
+    def __init__(self):
+        self.config = None
+        self.symbols_pool = None
     
     def chunks(self):
         for i in range(1, self.config.password_length + 1):
@@ -20,6 +20,8 @@ class brute_multi_thread:
                 yield chunk
     
     def bruteforce(self):
+        self.config = param
+        self.symbols_pool = "".join(parse_char_pool(self.config.symbols))
         targets_to_find = set(self.config.targets)
         found_results = []
         log_entries = []
@@ -29,33 +31,34 @@ class brute_multi_thread:
         start = datetime.datetime.now()
         log_entries.append(f"Начало атаки: {start}")
         log_entries.append(settings(self.config.cores, self.config.password_length, self.config.output, "".join(parse_char_pool(self.config.symbols)), log_hash(self.config.targets), "Многопоточный режим"))
-        
-        with ThreadPoolExecutor(max_workers=self.config.cores) as executor:
-            chunk_iterator = self.chunks()
-            futures = {executor.submit(process_chunk, next(chunk_iterator), targets_to_find) for _ in range(self.config.cores)}
-            
-            while futures:
-                for future in as_completed(futures):
-                    found_in_chunk = future.result()
-                    if found_in_chunk:
-                        for item in found_in_chunk:
-                            found_results.append(item) 
-                            hash_val, _ = list(item.items())[0] 
-                            log_line = print_(f"Спустя {datetime.datetime.now() - start} был найден хэш: {hash_val} из строки: {_}")
-                            log_entries.append(log_line.strip())
-                            targets_to_find.discard(hash_val)
-                    futures.remove(future)
-                    try:
-                        new_chunk = next(chunk_iterator)
-                        futures.add(executor.submit(process_chunk, new_chunk, targets_to_find))
-                    except StopIteration:
-                        print("!!!!")
-                    break 
-                if not targets_to_find:
-                    for f in futures:
-                        f.cancel()
-                    break
+        try:
+            with ThreadPoolExecutor(max_workers=self.config.cores) as executor:
+                chunk_iterator = self.chunks()
+                futures = {executor.submit(process_chunk, next(chunk_iterator), targets_to_find) for _ in range(self.config.cores)}
                 
+                while futures:
+                    for future in as_completed(futures):
+                        found_in_chunk = future.result()
+                        if found_in_chunk:
+                            for item in found_in_chunk:
+                                found_results.append(item) 
+                                hash_val, _ = list(item.items())[0] 
+                                log_line = print_(f"Спустя {datetime.datetime.now() - start} был найден хэш: {hash_val} из строки: {_}")
+                                log_entries.append(log_line.strip())
+                                targets_to_find.discard(hash_val)
+                        futures.remove(future)
+                        try:
+                            new_chunk = next(chunk_iterator)
+                            futures.add(executor.submit(process_chunk, new_chunk, targets_to_find))
+                        except StopIteration:
+                            pass
+                        break 
+                    if not targets_to_find:
+                        for f in futures:
+                            f.cancel()
+                        break
+        except KeyboardInterrupt:
+            print("[-] Принудительное завершение атаки.")
         end_time = datetime.datetime.now()
         if not targets_to_find:
             log = f"Атака закончилась успешно, все хэши найдены\nВремя выполнения: {end_time - start} секунд"

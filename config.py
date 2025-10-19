@@ -3,6 +3,7 @@ import os
 from utils import load_data, save_data, iface_hashes, interface_ssumbols, clear, validate_txt_filename, elements
 from hardcode import *
 import time
+from multiprocessing import current_process
 
 class parameters:
     def __init__(self):
@@ -25,7 +26,7 @@ class parameters:
             "cores": os.cpu_count(),
             "password_length": 5,
             "output": "output.txt",
-            "chunk_size": 1000,
+            "chunk_size": 10000,
             "symbols": [{"start": 97, "end": 123}],
             "targets": [
                 "1115dd800feaacefdf481f1f9070374a2a81e27880f187396db67958b207cbad",
@@ -56,7 +57,14 @@ class parameters:
         self.targets = data.get('targets', defaults['targets'])
 
         self.data = {"cores": self.cores, "password_length": self.password_length, "output": self.output, "chunk_size": self.chunk_size, "symbols": self.symbols, "targets": self.targets}
-        save_data(FILENAME, self.data)
+        
+        if current_process().name == "MainProcess":
+            try:
+                save_data(FILENAME, self.data)
+            except Exception:
+                pass
+        else:
+            pass
             
     def display(self):
         return f'{"-"*50}\nПараметры: \nКоличество процессов: {self.cores}\nДлина целевой строки: {self.password_length}\nФайл вывода: {self.output}\nРазмер чанка: {self.chunk_size}\nПул символов: {interface_ssumbols(self.symbols)}\nТаргеты: {iface_hashes(self.targets)}\n{"-"*50}'
@@ -171,11 +179,10 @@ class parameters:
                     continue
                  
                 symbols.append(symbols_)
-                
-                time.sleep(2)
                 self.symbols = symbols
+                time.sleep(2)
                 continue
-            except ValueError:
+            except Exception:
                 break
             
         self.data["symbols"] = symbols

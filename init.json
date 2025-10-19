@@ -2,15 +2,11 @@
     "cores": 12,
     "password_length": 5,
     "output": "output.txt",
-    "chunk_size": 1000,
+    "chunk_size": 10000,
     "symbols": [
         {
             "start": 97,
             "end": 123
-        },
-        {
-            "start": 47,
-            "end": 97
         }
     ],
     "targets": [

@@ -2,10 +2,12 @@ from config import param
 from utils import clear
 from single_thread import brute_single_thread
 from multithreading import brute_multi_thread
+from multiprocess import brute_multi_process
 
 
-brut = brute_single_thread(config=param)
-brut_2 = brute_multi_thread(config=param)
+brut = brute_single_thread()
+brut_2 = brute_multi_thread()
+brut_3 = brute_multi_process()
 
 
 def main():
@@ -15,7 +17,6 @@ def main():
         clear()
         print(param.display())
         choice = str(input("1 - Изменение параметров\n2 - Запуск во всех режимах\n3 - Запуск однопоточного режима\n4 - Запуск многопоточного режима\n5 - Запуск многопроцессорного режима\n6 - Выход\n"))
-
         if choice == '1':
             param.change_if()
         elif choice == '2':
@@ -24,9 +25,8 @@ def main():
             brut.bruteforce()
         elif choice == '4':
             brut_2.bruteforce()
-            input()
         elif choice == '5':
-            pass
+            brut_3.bruteforce()
         else:
             print("[!] Завершение работы программы")
             exit()
