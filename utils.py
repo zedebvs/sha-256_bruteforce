@@ -4,6 +4,7 @@ from pathlib import Path
 from hashlib import sha256, sha1, md5
 
 
+
 def load_data(file_path):
     if not os.path.exists(file_path):
         print(f"Файл '{file_path}' не найден")
@@ -76,7 +77,6 @@ def elements(arr):
             return None
     print(f'Символы загружены в пул: {symbols}')
     return {"start": ord(min(arr)), "end": ord(max(arr))+1}
-
 
 def hash_(string):
     return sha256(string.encode('utf-8')).hexdigest()

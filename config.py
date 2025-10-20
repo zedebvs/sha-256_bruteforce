@@ -1,6 +1,6 @@
 import json
 import os
-from utils import load_data, save_data, iface_hashes, interface_ssumbols, clear, validate_txt_filename, elements
+from utils import load_data, save_data, iface_hashes, parse_char_pool, clear, validate_txt_filename, elements
 from hardcode import *
 import time
 from multiprocessing import current_process
@@ -14,6 +14,7 @@ class parameters:
         self.symbols = None
         self.targets = None
         self.chunk_size = None
+        self.verbose = None
         self.data = None
         self.load_parameters(self.FILENAME)
 
@@ -27,6 +28,7 @@ class parameters:
             "password_length": 5,
             "output": "output.txt",
             "chunk_size": 10000,
+            "verbose": False,
             "symbols": [{"start": 97, "end": 123}],
             "targets": [
                 "1115dd800feaacefdf481f1f9070374a2a81e27880f187396db67958b207cbad",
@@ -53,10 +55,11 @@ class parameters:
         self.password_length = data.get('password_length', defaults['password_length'])
         self.output = data.get('output', defaults['output'])
         self.chunk_size = data.get('chunk_size', defaults['chunk_size'])
+        self.verbose = data.get('verbose', defaults['verbose'])
         self.symbols = data.get('symbols', defaults['symbols'])
         self.targets = data.get('targets', defaults['targets'])
 
-        self.data = {"cores": self.cores, "password_length": self.password_length, "output": self.output, "chunk_size": self.chunk_size, "symbols": self.symbols, "targets": self.targets}
+        self.data = {"cores": self.cores, "password_length": self.password_length, "output": self.output, "chunk_size": self.chunk_size,"verbose": self.verbose, "symbols": self.symbols, "targets": self.targets}
         
         if current_process().name == "MainProcess":
             try:
@@ -67,7 +70,7 @@ class parameters:
             pass
             
     def display(self):
-        return f'{"-"*50}\nПараметры: \nКоличество процессов: {self.cores}\nДлина целевой строки: {self.password_length}\nФайл вывода: {self.output}\nРазмер чанка: {self.chunk_size}\nПул символов: {interface_ssumbols(self.symbols)}\nТаргеты: {iface_hashes(self.targets)}\n{"-"*50}'
+        return f'{"-"*50}\nПараметры: \nКоличество процессов: {self.cores}\nДлина целевой строки: {self.password_length}\nФайл вывода: {self.output}\nРазмер чанка: {self.chunk_size}\nПул символов: {"".join(parse_char_pool(self.symbols))}\nТаргеты: {iface_hashes(self.targets)}\n{"-"*50}'
     
     def change_if(self):
         while True:
@@ -224,7 +227,7 @@ class parameters:
                 break
             try:
                 choice = int(choice)
-                if choice < 0 or choice >= len(self.targets):
+                if choice < 0 or choice > len(for_delete):
                     print("Вы ошиблись при выборе элемента для удаления!")
                     time.sleep(1)
                     continue

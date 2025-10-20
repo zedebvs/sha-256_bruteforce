@@ -4,3 +4,5 @@ __pycache__/
 .test_.py
 .test.py
 venv/
+test.py
+output.txt

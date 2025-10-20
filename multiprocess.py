@@ -5,6 +5,8 @@ import numpy as np
 from hardcode import line_, print_, settings
 import datetime
 from concurrent.futures import ProcessPoolExecutor, as_completed
+import os
+
 
 class brute_multi_process:
     def __init__(self):
@@ -28,7 +30,7 @@ class brute_multi_process:
 
                 prefix_chunks = np.array_split(list(self.symbols_pool), self.config.cores)
                 
-                futures = {executor.submit(process_prefix_chunk, chunk, self.symbols_pool, self.config.password_length, targets_to_find) for chunk in prefix_chunks}
+                futures = {executor.submit(process_prefix_chunk, chunk, self.symbols_pool, self.config.password_length, targets_to_find, verbose=self.config.verbose) for chunk in prefix_chunks}
                 
                 for future in as_completed(futures):
                     found_list = future.result()
@@ -65,7 +67,8 @@ class brute_multi_process:
             f.write(output_)
         print(f"[+] Результат сохранен в файл: {self.config.output}")
 
-def process_prefix_chunk(prefix_chunk, full_alphabet, max_len, targets_to_find):
+def process_prefix_chunk(prefix_chunk, full_alphabet, max_len, targets_to_find, verbose=False):
+    if verbose: print(f"Процесс: {os.getpid()} работает с символами: {''.join(prefix_chunk)}")
     found_in_chunk = []
     for prefix in prefix_chunk:
         if hash_(prefix) in targets_to_find:

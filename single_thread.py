@@ -4,12 +4,11 @@ from itertools import product
 from hardcode import line_, print_, settings
 import datetime
 
-
 class brute_single_thread:
     def __init__(self):
         self.config = None
         self.symbols_pool = None
-
+        
     def bruteforce(self):
         self.config = param
         self.symbols_pool = "".join(parse_char_pool(self.config.symbols))
